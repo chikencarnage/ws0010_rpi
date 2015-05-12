@@ -8,9 +8,6 @@
 
 from time import sleep
 
-
-class Adafruit_CharLCD(object):
-
     # commands
     LCD_CLEARDISPLAY        = 0x01
     LCD_RETURNHOME          = 0x02
@@ -49,13 +46,15 @@ class Adafruit_CharLCD(object):
     LCD_RUSSIAN             = 0x02
     LCD_EUROPEAN_II         = 0x03
 
+class Adafruit_CharLCD(object):
+
     def __init__(self, ver=2, pin_rs=17, pin_rw=27, pin_e=22, pins_db=[05, 06, 13, 19], GPIO=None):
         # Emulate the old behavior of using RPi.GPIO if we haven't been given
         # an explicit GPIO interface to use
         if not GPIO:
             import RPi.GPIO as GPIO
             GPIO.setwarnings(False)
-        self.ver = 2 if ver != 1 and ver != 2 else self.ver = ver
+        self.ver = 2 if ver != 1 and ver != 2 else ver
         self.GPIO = GPIO
         self.pin_rs = pin_rs
         self.pin_rw = pin_rw
@@ -78,7 +77,7 @@ class Adafruit_CharLCD(object):
     def begin(self, cols, lines):
         self.numlines = lines
         self.currline = 0
-		
+        
         self.GPIO.setup(self.pin_e, GPIO.OUT)
         self.GPIO.setup(self.pin_rw, GPIO.OUT)
         self.GPIO.setup(self.pin_rs, GPIO.OUT)
