@@ -76,8 +76,8 @@ class Adafruit_CharLCD(object):
         begin(16,2)
         	
     def begin(self, cols, lines):
-		self.numlines = lines
-		self.currline = 0
+        self.numlines = lines
+        self.currline = 0
 		
         self.GPIO.setup(self.pin_e, GPIO.OUT)
         self.GPIO.setup(self.pin_rw, GPIO.OUT)
@@ -91,7 +91,7 @@ class Adafruit_CharLCD(object):
         
         for pin in self.pins_db:
             self.GPIO.setup(pin, GPIO.OUT)
-			self.GPIO.output(pin, False)
+            self.GPIO.output(pin, False)
 
         self.write4bits(0x03)
         self.delayMicroseconds(5000)
