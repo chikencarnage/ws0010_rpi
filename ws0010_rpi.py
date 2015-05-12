@@ -95,7 +95,7 @@ class Adafruit_CharLCD(object):
 
         self.write4bits(0x03)
         self.delayMicroseconds(5000)
-        if self.ver = 2:
+        if self.ver == 2:
 			self.write4bits(0x08)
 			self.delayMicroseconds(5000)
 
@@ -106,16 +106,16 @@ class Adafruit_CharLCD(object):
         self.write4bits(0x08)  # 2 line 5x7 matrix
         self.delayMicroseconds(5000)
 
-		self.write4bits(0x08)
-		self.delayMicroseconds(5000)
-		self.write4bits(0x01)
-		self.delayMicroseconds(5000)
-		self.write4bits(0x06)
-		self.delayMicroseconds(5000)
-		self.write4bits(0x02)
-		self.delayMicroseconds(5000)
-		self.write4bits(0x0C)
-		self.delayMicroseconds(5000)
+        self.write4bits(0x08)
+        self.delayMicroseconds(5000)
+        self.write4bits(0x01)
+        self.delayMicroseconds(5000)
+        self.write4bits(0x06)
+        self.delayMicroseconds(5000)
+        self.write4bits(0x02)
+        self.delayMicroseconds(5000)
+        self.write4bits(0x0C)
+        self.delayMicroseconds(5000)
 
     def home(self):
         self.write4bits(self.LCD_RETURNHOME)  # set cursor position to zero
