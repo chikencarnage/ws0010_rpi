@@ -6,97 +6,95 @@
 # LiquidCrystal - https://github.com/arduino/Arduino/blob/master/libraries/LiquidCrystal/LiquidCrystal.cpp
 #
 
+import RPi.GPIO as GPIO
 from time import sleep
 
-# commands
-LCD_CLEARDISPLAY        = 0x01
-LCD_RETURNHOME          = 0x02
-LCD_ENTRYMODESET        = 0x04
-LCD_DISPLAYCONTROL      = 0x08
-LCD_CURSORSHIFT         = 0x10
-LCD_FUNCTIONSET         = 0x28
-LCD_SETCGRAMADDR        = 0x40
-LCD_SETDDRAMADDR        = 0x80
-
-# flags for display entry mode
-LCD_ENTRYRIGHT          = 0x00
-LCD_ENTRYLEFT           = 0x02
-LCD_ENTRYSHIFTINCREMENT = 0x01
-LCD_ENTRYSHIFTDECREMENT = 0x00
-
-# flags for display on/off control
-LCD_DISPLAYON           = 0x04
-LCD_DISPLAYOFF          = 0x00
-LCD_CURSORON            = 0x02
-LCD_CURSOROFF           = 0x00
-LCD_BLINKON             = 0x01
-LCD_BLINKOFF            = 0x00
-
-# flags for display/cursor shift
-LCD_DISPLAYMOVE         = 0x08
-LCD_CURSORMOVE          = 0x00
-LCD_MOVERIGHT           = 0x04
-LCD_MOVELEFT            = 0x00
-
-# flags for function set
-LCD_8BITMODE            = 0x10
-LCD_4BITMODE            = 0x00
-LCD_JAPANESE            = 0x00
-LCD_EUROPEAN_I          = 0x01
-LCD_RUSSIAN             = 0x02
-LCD_EUROPEAN_II         = 0x03
-
 class Adafruit_CharLCD(object):
+	# commands
+	LCD_CLEARDISPLAY        = 0x01
+	LCD_RETURNHOME          = 0x02
+	LCD_ENTRYMODESET        = 0x04
+	LCD_DISPLAYCONTROL      = 0x08
+	LCD_CURSORSHIFT         = 0x10
+	LCD_FUNCTIONSET         = 0x28
+	LCD_SETCGRAMADDR        = 0x40
+	LCD_SETDDRAMADDR        = 0x80
+	
+	# flags for display entry mode
+	LCD_ENTRYRIGHT          = 0x00
+	LCD_ENTRYLEFT           = 0x02
+	LCD_ENTRYSHIFTINCREMENT = 0x01
+	LCD_ENTRYSHIFTDECREMENT = 0x00
+	
+	# 	flags for display on/off control
+	LCD_DISPLAYON           = 0x04
+	LCD_DISPLAYOFF          = 0x00
+	LCD_CURSORON            = 0x02
+	LCD_CURSOROFF           = 0x00
+	LCD_BLINKON             = 0x01
+	LCD_BLINKOFF            = 0x00
+	
+	# flags for display/cursor shift
+	LCD_DISPLAYMOVE         = 0x08
+	LCD_CURSORMOVE          = 0x00
+	LCD_MOVERIGHT           = 0x04
+	LCD_MOVELEFT            = 0x00
+	
+	# flags for function set
+	LCD_8BITMODE            = 0x10
+	LCD_4BITMODE            = 0x00
+	LCD_JAPANESE            = 0x00
+	LCD_EUROPEAN_I          = 0x01
+	LCD_RUSSIAN             = 0x02
+	LCD_EUROPEAN_II         = 0x03
 
-    def __init__(self, ver=2, pin_rs=17, pin_rw=27, pin_e=22, pins_db=[05, 06, 13, 19], GPIO=None):
+   def __init__(self, ver=2, pin_rs=17, pin_rw=27, pin_e=22, pins_db=[05, 06, 13, 19], GPIO=None):
         # Emulate the old behavior of using RPi.GPIO if we haven't been given
         # an explicit GPIO interface to use
-        if not GPIO:
-            import RPi.GPIO as GPIO
-            GPIO.setwarnings(False)
         self.ver = 2 if ver != 1 and ver != 2 else ver
-        self.GPIO = GPIO
         self.pin_rs = pin_rs
         self.pin_rw = pin_rw
         self.pin_e = pin_e
         self.pins_db = pins_db
+        self.busy_pin = pins_db[3]
 
-        self.GPIO.setmode(GPIO.BCM)
-        self.GPIO.setup(self.pin_e, GPIO.OUT)
-        self.GPIO.setup(self.pin_rw, GPIO.OUT)
-        self.GPIO.setup(self.pin_rs, GPIO.OUT)
-        
-        self.GPIO.output(self.pin_e, False)
-        self.GPIO.output(self.pin_rw, False)
-        self.GPIO.output(self.pin_rs, False)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.pin_e, GPIO.OUT)
+        GPIO.setup(self.pin_rw, GPIO.OUT)
+        GPIO.setup(self.pin_rs, GPIO.OUT)
+        for pin in self.pins_db:
+            GPIO.setup(pin, GPIO.OUT)
+        GPIO.output(self.pin_e, False)
+        GPIO.output(self.pin_rw, False)
+        GPIO.output(self.pin_rs, False)
         
         self.displayfunction = LCD_FUNCTIONSET | LCD_4BITMODE
         
-        begin(16,2)
+        self.begin(16,2)
         	
     def begin(self, cols, lines):
         self.numlines = lines
         self.currline = 0
         
-        self.GPIO.setup(self.pin_e, GPIO.OUT)
-        self.GPIO.setup(self.pin_rw, GPIO.OUT)
-        self.GPIO.setup(self.pin_rs, GPIO.OUT)
+        GPIO.setup(self.pin_e, GPIO.OUT)
+        GPIO.setup(self.pin_rw, GPIO.OUT)
+        GPIO.setup(self.pin_rs, GPIO.OUT)
         
-        self.GPIO.output(self.pin_e, False)
-        self.GPIO.output(self.pin_rw, False)
-        self.GPIO.output(self.pin_rs, False)
+        GPIO.output(self.pin_e, False)
+        GPIO.output(self.pin_rw, False)
+        GPIO.output(self.pin_rs, False)
 
         self.delayMicroseconds(50000)
         
         for pin in self.pins_db:
-            self.GPIO.setup(pin, GPIO.OUT)
-            self.GPIO.output(pin, False)
+            GPIO.setup(pin, GPIO.OUT)
+            GPIO.output(pin, False)
 
         self.write4bits(0x03)
         self.delayMicroseconds(5000)
         if self.ver == 2:
-			self.write4bits(0x08)
-			self.delayMicroseconds(5000)
+		      self.write4bits(0x08)
+			   self.delayMicroseconds(5000)
 
         self.write4bits(0x02)  # initialization
         self.delayMicroseconds(5000)
@@ -205,18 +203,31 @@ class Adafruit_CharLCD(object):
             if bits[i] == "1":
                 self.GPIO.output(self.pins_db[::-1][i-4], True)
         self.pulseEnable()
+        self.waitForReady()
 
     def delayMicroseconds(self, microseconds):
         seconds = microseconds / float(1000000)  # divide microseconds by 1 million for seconds
         sleep(seconds)
 
     def pulseEnable(self):
-        self.GPIO.output(self.pin_e, False)
-        self.delayMicroseconds(1)       # 1 microsecond pause - enable pulse must be > 450ns
         self.GPIO.output(self.pin_e, True)
-        self.delayMicroseconds(1)       # 1 microsecond pause - enable pulse must be > 450ns
+        self.delayMicroseconds(50)       # 1 microsecond pause - enable pulse must be > 450ns
         self.GPIO.output(self.pin_e, False)
-        self.delayMicroseconds(1)       # commands need > 37us to settle
+
+    def waitForReady(self):
+    	self.busy = True
+    	GPIO.setup(self.busy_pin, GPIO.IN)
+    	GPIO.output(self.pin_rs, False)
+    	GPIO.output(self.pin_rw, True)
+    	while True:
+    		GPIO.output(self.pin_e, LOW)
+    		GPIO.output(self.pin_e, HIGH)
+    		self.delayMicroseconds(10)
+    		self.busy = GPIO.input(self.busy_pin)
+    		GPIO.output(self.pin_e, LOW)
+    		self.pulseEnable()
+    	GPIO.setup(self.busy_pin, GPIO.OUT)
+    	GPIO.output(self.pin_rw, False)
 
     def message(self, text):
         """ Send string to LCD. Newline wraps to second line"""
