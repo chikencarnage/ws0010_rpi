@@ -71,6 +71,8 @@ class Adafruit_CharLCD(object):
         GPIO.output(self.pin_rs, False)
 
         self.displayfunction = LCD_FUNCTIONSET | LCD_4BITMODE
+        self.displaycontrol  = LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF
+        self.displaymode     = LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT
 
         self.begin(16,2)
 
