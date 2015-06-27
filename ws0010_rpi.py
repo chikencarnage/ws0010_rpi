@@ -192,18 +192,18 @@ class Adafruit_CharLCD(object):
         """ Send command to LCD """
         self.delayMicroseconds(1000)  # 1000 microsecond sleep
         bits = bin(bits)[2:].zfill(8)
-        self.GPIO.output(self.pin_rs, char_mode)
+        GPIO.output(self.pin_rs, char_mode)
         for pin in self.pins_db:
-            self.GPIO.output(pin, False)
+            GPIO.output(pin, False)
         for i in range(4):
             if bits[i] == "1":
-                self.GPIO.output(self.pins_db[::-1][i], True)
+                GPIO.output(self.pins_db[::-1][i], True)
         self.pulseEnable()
         for pin in self.pins_db:
-            self.GPIO.output(pin, False)
+            GPIO.output(pin, False)
         for i in range(4, 8):
             if bits[i] == "1":
-                self.GPIO.output(self.pins_db[::-1][i-4], True)
+                GPIO.output(self.pins_db[::-1][i-4], True)
         self.pulseEnable()
         self.waitForReady()
 
@@ -212,9 +212,9 @@ class Adafruit_CharLCD(object):
         sleep(seconds)
 
     def pulseEnable(self):
-        self.GPIO.output(self.pin_e, True)
+        GPIO.output(self.pin_e, True)
         self.delayMicroseconds(50)       # 1 microsecond pause - enable pulse must be > 450ns
-        self.GPIO.output(self.pin_e, False)
+        GPIO.output(self.pin_e, False)
 
     def waitForReady(self):
         self.busy = True
