@@ -9,46 +9,48 @@
 import RPi.GPIO as GPIO
 from time import sleep
 
+# commands
+LCD_CLEARDISPLAY        = 0x01
+LCD_RETURNHOME          = 0x02
+LCD_ENTRYMODESET        = 0x04
+LCD_DISPLAYCONTROL      = 0x08
+LCD_CURSORSHIFT         = 0x10
+LCD_FUNCTIONSET         = 0x28
+LCD_SETCGRAMADDR        = 0x40
+LCD_SETDDRAMADDR        = 0x80
+
+# flags for display entry mode
+LCD_ENTRYRIGHT          = 0x00
+LCD_ENTRYLEFT           = 0x02
+LCD_ENTRYSHIFTINCREMENT = 0x01
+LCD_ENTRYSHIFTDECREMENT = 0x00
+
+# flags for display on/off control
+LCD_DISPLAYON           = 0x04
+LCD_DISPLAYOFF          = 0x00
+LCD_CURSORON            = 0x02
+LCD_CURSOROFF           = 0x00
+LCD_BLINKON             = 0x01
+LCD_BLINKOFF            = 0x00
+
+# flags for display/cursor shift
+LCD_DISPLAYMOVE         = 0x08
+LCD_CURSORMOVE          = 0x00
+LCD_MOVERIGHT           = 0x04
+LCD_MOVELEFT            = 0x00
+
+# flags for function set
+LCD_8BITMODE            = 0x10
+LCD_4BITMODE            = 0x00
+LCD_JAPANESE            = 0x00
+LCD_EUROPEAN_I          = 0x01
+LCD_RUSSIAN             = 0x02
+LCD_EUROPEAN_II         = 0x03
+
 class Adafruit_CharLCD(object):
-   # commands
-   LCD_CLEARDISPLAY        = 0x01
-   LCD_RETURNHOME          = 0x02
-   LCD_ENTRYMODESET        = 0x04
-   LCD_DISPLAYCONTROL      = 0x08
-   LCD_CURSORSHIFT         = 0x10
-   LCD_FUNCTIONSET         = 0x28
-   LCD_SETCGRAMADDR        = 0x40
-   LCD_SETDDRAMADDR        = 0x80
 
-   # flags for display entry mode
-   LCD_ENTRYRIGHT          = 0x00
-   LCD_ENTRYLEFT           = 0x02
-   LCD_ENTRYSHIFTINCREMENT = 0x01
-   LCD_ENTRYSHIFTDECREMENT = 0x00
 
-   # 	flags for display on/off control
-   LCD_DISPLAYON           = 0x04
-   LCD_DISPLAYOFF          = 0x00
-   LCD_CURSORON            = 0x02
-   LCD_CURSOROFF           = 0x00
-   LCD_BLINKON             = 0x01
-   LCD_BLINKOFF            = 0x00
-
-   # flags for display/cursor shift
-   LCD_DISPLAYMOVE         = 0x08
-   LCD_CURSORMOVE          = 0x00
-   LCD_MOVERIGHT           = 0x04
-   LCD_MOVELEFT            = 0x00
-
-   # flags for function set
-   LCD_8BITMODE            = 0x10
-   LCD_4BITMODE            = 0x00
-   LCD_JAPANESE            = 0x00
-   LCD_EUROPEAN_I          = 0x01
-   LCD_RUSSIAN             = 0x02
-   LCD_EUROPEAN_II         = 0x03
-
-   def __init__(self, ver=2, pin_rs=17, pin_rw=27, pin_e=22, pins_db=[05, 06, 13, 19], GPIO=None):
+    def __init__(self, ver=2, pin_rs=17, pin_rw=27, pin_e=22, pins_db=[05, 06, 13, 19]):
         # Emulate the old behavior of using RPi.GPIO if we haven't been given
         # an explicit GPIO interface to use
         self.ver = 2 if ver != 1 and ver != 2 else ver
@@ -215,19 +217,19 @@ class Adafruit_CharLCD(object):
         self.GPIO.output(self.pin_e, False)
 
     def waitForReady(self):
-      self.busy = True
-      GPIO.setup(self.busy_pin, GPIO.IN)
-      GPIO.output(self.pin_rs, False)
-      GPIO.output(self.pin_rw, True)
-      while True:
-         GPIO.output(self.pin_e, LOW)
-         GPIO.output(self.pin_e, HIGH)
-         self.delayMicroseconds(10)
-         self.busy = GPIO.input(self.busy_pin)
-         GPIO.output(self.pin_e, LOW)
-         self.pulseEnable()
-      GPIO.setup(self.busy_pin, GPIO.OUT)
-      GPIO.output(self.pin_rw, False)
+        self.busy = True
+        GPIO.setup(self.busy_pin, GPIO.IN)
+        GPIO.output(self.pin_rs, False)
+        GPIO.output(self.pin_rw, True)
+        while True:
+            GPIO.output(self.pin_e, LOW)
+            GPIO.output(self.pin_e, HIGH)
+            self.delayMicroseconds(10)
+            self.busy = GPIO.input(self.busy_pin)
+            GPIO.output(self.pin_e, LOW)
+            self.pulseEnable()
+        GPIO.setup(self.busy_pin, GPIO.OUT)
+        GPIO.output(self.pin_rw, False)
 
     def message(self, text):
         """ Send string to LCD. Newline wraps to second line"""
