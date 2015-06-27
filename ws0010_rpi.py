@@ -217,7 +217,7 @@ class Adafruit_CharLCD(object):
         GPIO.output(self.pin_e, False)
 
     def waitForReady(self):
-        self.busy = True
+        self.busy == True
         GPIO.setup(self.busy_pin, GPIO.IN)
         GPIO.output(self.pin_rs, False)
         GPIO.output(self.pin_rw, True)
