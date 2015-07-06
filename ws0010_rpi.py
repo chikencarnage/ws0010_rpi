@@ -9,51 +9,53 @@
 import RPi.GPIO as GPIO
 from time import sleep
 
-# commands
-LCD_CLEARDISPLAY        = 0x01
-LCD_RETURNHOME          = 0x02
-LCD_ENTRYMODESET        = 0x04
-LCD_DISPLAYCONTROL      = 0x08
-LCD_CURSORSHIFT         = 0x10
-LCD_FUNCTIONSET         = 0x28
-LCD_SETCGRAMADDR        = 0x40
-LCD_SETDDRAMADDR        = 0x80
+class Winstar_OLED(object):
+    # commands
+    LCD_CLEARDISPLAY = 0x01
+    LCD_RETURNHOME = 0x02
+    LCD_ENTRYMODESET = 0x04
+    LCD_DISPLAYCONTROL = 0x08
+    LCD_CURSORSHIFT = 0x10
+    LCD_FUNCTIONSET = 0x20
+    LCD_SETCGRAMADDR = 0x40
+    LCD_SETDDRAMADDR = 0x80
+ 
+    # flags for display entry mode
+    LCD_ENTRYRIGHT = 0x00
+    LCD_ENTRYLEFT = 0x02
+    LCD_ENTRYSHIFTINCREMENT = 0x01
+    LCD_ENTRYSHIFTDECREMENT = 0x00
+ 
+    # flags for display on/off control
+    LCD_DISPLAYON = 0x04
+    LCD_DISPLAYOFF = 0x00
+    LCD_CURSORON = 0x02
+    LCD_CURSOROFF = 0x00
+    LCD_BLINKON = 0x01
+    LCD_BLINKOFF = 0x00
+ 
+    # flags for display/cursor shift
+    LCD_DISPLAYMOVE = 0x08
+    LCD_CURSORMOVE = 0x00
+ 
+    # flags for display/cursor shift
+    LCD_DISPLAYMOVE = 0x08
+    LCD_CURSORMOVE = 0x00
+    LCD_MOVERIGHT = 0x04
+    LCD_MOVELEFT = 0x00
+ 
+    # flags for function set
+    LCD_8BITMODE = 0x10
+    LCD_4BITMODE = 0x00
+    LCD_2LINE = 0x08
+    LCD_1LINE = 0x00
+    LCD_5x10s = 0x04
+    LCD_5x8DOTS = 0x00
 
-# flags for display entry mode
-LCD_ENTRYRIGHT          = 0x00
-LCD_ENTRYLEFT           = 0x02
-LCD_ENTRYSHIFTINCREMENT = 0x01
-LCD_ENTRYSHIFTDECREMENT = 0x00
 
-# flags for display on/off control
-LCD_DISPLAYON           = 0x04
-LCD_DISPLAYOFF          = 0x00
-LCD_CURSORON            = 0x02
-LCD_CURSOROFF           = 0x00
-LCD_BLINKON             = 0x01
-LCD_BLINKOFF            = 0x00
-
-# flags for display/cursor shift
-LCD_DISPLAYMOVE         = 0x08
-LCD_CURSORMOVE          = 0x00
-LCD_MOVERIGHT           = 0x04
-LCD_MOVELEFT            = 0x00
-
-# flags for function set
-LCD_8BITMODE            = 0x10
-LCD_4BITMODE            = 0x00
-LCD_JAPANESE            = 0x00
-LCD_EUROPEAN_I          = 0x01
-LCD_RUSSIAN             = 0x02
-LCD_EUROPEAN_II         = 0x03
-
-class Adafruit_CharLCD(object):
-
-
-    def __init__(self, ver=2, pin_rs=17, pin_rw=27, pin_e=22, pins_db=[05, 06, 13, 19]):
+    def __init__(self, pin_rs=17, pin_rw=27, pin_e=22, pins_db=[05, 12, 13, 26]):
         # Emulate the old behavior of using RPi.GPIO if we haven't been given
         # an explicit GPIO interface to use
-        self.ver = 2 if ver != 1 and ver != 2 else ver
         self.pin_rs = pin_rs
         self.pin_rw = pin_rw
         self.pin_e = pin_e
@@ -96,27 +98,36 @@ class Adafruit_CharLCD(object):
 
         self.write4bits(0x03)
         self.delayMicroseconds(5000)
-        if self.ver == 2:
-            self.write4bits(0x08)
-            self.delayMicroseconds(5000)
-
-        self.write4bits(0x02)  # initialization
-        self.delayMicroseconds(5000)
-        self.write4bits(0x02)  # initialization
-        self.delayMicroseconds(5000)
-        self.write4bits(0x08)  # 2 line 5x7 matrix
-        self.delayMicroseconds(5000)
-
         self.write4bits(0x08)
         self.delayMicroseconds(5000)
+
+        self.write4bits(0x03)  # added
+        self.delayMicroseconds(5000)
+        self.write4bits(0x03)  # added
+        self.delayMicroseconds(5000)
+        self.write4bits(0x02)  # initialization
+        self.delayMicroseconds(5000)
+        self.write4bits(0x02)  # initialization
+        #self.delayMicroseconds(5000)
+        self.write4bits(0x0C)  # 2 line 5x8 matrix originally 08
+        self.delayMicroseconds(5000) # added
+        self.write4bits(0x0)  # initialization # added
+        #self.delayMicroseconds(5000)
+        self.write4bits(0x0C)  # 2 line 5x8 matrix originally 08 added
+        self.delayMicroseconds(5000) # added
+        
+        self.write4bits(0x0) # originally 0x08
+        #self.delayMicroseconds(5000)
         self.write4bits(0x01)
         self.delayMicroseconds(5000)
+        self.write4bits(0x0) # added
+        #self.delayMicroseconds(5000)
         self.write4bits(0x06)
         self.delayMicroseconds(5000)
-        self.write4bits(0x02)
-        self.delayMicroseconds(5000)
-        self.write4bits(0x0C)
-        self.delayMicroseconds(5000)
+        self.write4bits(0x0) # 0x02
+        #self.delayMicroseconds(5000)
+        self.write4bits(0x00) # 0x00
+        self.delayMicroseconds(10000) # 5000
 
     def home(self):
         self.write4bits(LCD_RETURNHOME)  # set cursor position to zero
@@ -128,8 +139,8 @@ class Adafruit_CharLCD(object):
 
     def setCursor(self, col, row):
         self.row_offsets = [0x00, 0x40, 0x14, 0x54]
-        if row > self.numlines:
-            row = self.numlines - 1  # we count rows starting w/0
+        if row >= self.numlines:
+            row = row % (self.numlines - 1)  # we count rows starting w/0
         self.write4bits(LCD_SETDDRAMADDR | (col + self.row_offsets[row]))
 
     def noDisplay(self):
